@@ -81,7 +81,7 @@ ble_error_t MaximGap::setAdvertisingPayload_(ble::advertising_handle_t handle, m
         advDataLen = payload.size();
         //scanResponseLen = scanResponse.getPayloadLen();
         memcpy((void*)advDataCache, (void*)payload.data(), advDataLen);
-        memcpy((void*)scanResponseCache, (void*)payload.data(), advDataLen);
+        //memcpy((void*)scanResponseCache, (void*)payload.data(), advDataLen);
 
         return BLE_ERROR_NONE;
     }
