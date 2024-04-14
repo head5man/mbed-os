@@ -34,6 +34,8 @@
 #include "MaximGap.h"
 #include "mbed.h"
 #include "hci_vs.h"
+#include <cstdint>
+#include <stdint.h>
 
 MaximGap &MaximGap::getInstance() {
     static MaximGap m_instance;
@@ -56,7 +58,51 @@ ble_error_t MaximGap::setAdvertisingData_(const GapAdvertisingData &advData, con
     advDataLen = advData.getPayloadLen();
     scanResponseLen = scanResponse.getPayloadLen();
     memcpy((void*)advDataCache, (void*)advData.getPayload(), advDataLen);
-    memcpy((void*)advDataCache, (void*)advData.getPayload(), scanResponseLen);
+    memcpy((void*)scanResponseCache, (void*)scanResponse.getPayload(), scanResponseLen);
+
+    return BLE_ERROR_NONE;
+}
+
+ble_error_t MaximGap::setAdvertisingPayload_(ble::advertising_handle_t handle, mbed::Span<const uint8_t> payload)
+{
+    if (handle == ble::LEGACY_ADVERTISING_HANDLE)
+    {
+        /* Make sure we don't exceed the advertising payload length */
+        if (payload.size() > GAP_ADVERTISING_DATA_MAX_PAYLOAD) {
+            return BLE_ERROR_BUFFER_OVERFLOW;
+        }
+
+        /* Make sure we have a payload! */
+        if (payload.size() == 0) {
+            return BLE_ERROR_PARAM_OUT_OF_RANGE;
+        }
+
+        /* save advertising and scan response data */
+        advDataLen = payload.size();
+        //scanResponseLen = scanResponse.getPayloadLen();
+        memcpy((void*)advDataCache, (void*)payload.data(), advDataLen);
+        memcpy((void*)scanResponseCache, (void*)payload.data(), advDataLen);
+
+        return BLE_ERROR_NONE;
+    }
+
+    return BLE_ERROR_NOT_IMPLEMENTED;
+}
+
+ble_error_t MaximGap::setAdvertisingParameters_(ble::advertising_handle_t handle, const ble::AdvertisingParameters &params)
+{
+    if (handle != ble::LEGACY_ADVERTISING_HANDLE)
+        return BLE_ERROR_NOT_IMPLEMENTED;
+    
+    /* set advertising and scan response data for discoverable mode */
+    DmAdvSetData(DM_DATA_LOC_ADV, advDataLen, advDataCache);
+    DmAdvSetData(DM_DATA_LOC_SCAN, scanResponseLen, scanResponseCache);
+
+    
+    DmAdvSetInterval(params.getMinPrimaryInterval().value(), params.getMaxPrimaryInterval().value());
+    DmAdvStart(params.getType().value(), (uint16_t)0);
+
+    state.advertising = 1;
 
     return BLE_ERROR_NONE;
 }

@@ -59,6 +59,9 @@ public:
     ble_error_t getAddress_(AddressType_t *typeP, Address_t address);
     ble_error_t setAdvertisingData_(const GapAdvertisingData &, const GapAdvertisingData &);
 
+    ble_error_t setAdvertisingPayload_(ble::advertising_handle_t handle, mbed::Span<const uint8_t> payload);
+    ble_error_t setAdvertisingParameters_(ble::advertising_handle_t handle, const ble::AdvertisingParameters &params);
+
     #define BLE_GAP_ADV_INTERVAL_MIN        0x0020 /**< Minimum Advertising interval in 625 us units, i.e. 20 ms. */
     #define BLE_GAP_ADV_NONCON_INTERVAL_MIN 0x00A0 /**< Minimum Advertising interval in 625 us units for non connectable mode, i.e. 100 ms. */
     #define BLE_GAP_ADV_INTERVAL_MAX        0x4000 /**< Maximum Advertising interval in 625 us units, i.e. 10.24 s. */
